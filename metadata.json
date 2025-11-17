@@ -1,0 +1,7 @@
+{
+  "name": "Rastreaitor",
+  "description": "An application for real-time mobile phone geolocation with a strong focus on consent and privacy. It allows a user to share their location with another user, who can view it on a live map.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
