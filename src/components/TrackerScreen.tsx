@@ -7,9 +7,9 @@ interface TrackerScreenProps {
   onBack: () => void;
 }
 
-// TODO: Replace with your public Pusher Key and Cluster
-const PUSHER_KEY = 'PON_AQUÍ_TU_PUSHER_KEY'; 
-const PUSHER_CLUSTER = 'PON_AQUÍ_TU_PUSHER_CLUSTER';
+// Load public keys from Vite environment variables
+const PUSHER_KEY = import.meta.env.VITE_PUSHER_KEY;
+const PUSHER_CLUSTER = import.meta.env.VITE_PUSHER_CLUSTER;
 
 export function TrackerScreen({ onBack }: TrackerScreenProps) {
   const [trackingId, setTrackingId] = useState('');
@@ -19,13 +19,12 @@ export function TrackerScreen({ onBack }: TrackerScreenProps) {
   const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
-      if (!submittedId || !PUSHER_KEY || !PUSHER_CLUSTER) return;
+      if (!submittedId) return;
       
-      // Prevent Pusher from logging to the console
       Pusher.logToConsole = false;
 
-      const pusher = new Pusher(PUSHER_KEY, {
-        cluster: PUSHER_CLUSTER,
+      const pusher = new Pusher(PUSHER_KEY!, {
+        cluster: PUSHER_CLUSTER!,
       });
 
       const channelName = `location-${submittedId}`;
@@ -36,7 +35,7 @@ export function TrackerScreen({ onBack }: TrackerScreenProps) {
 
       channel.bind('pusher:subscription_succeeded', () => {
         setIsConnecting(false);
-        setError(null); // Clear previous errors on successful connection
+        setError(null);
       });
       
       channel.bind('pusher:subscription_error', () => {
@@ -54,6 +53,23 @@ export function TrackerScreen({ onBack }: TrackerScreenProps) {
       };
 
   }, [submittedId]);
+  
+  if (!PUSHER_KEY || !PUSHER_CLUSTER) {
+    return (
+      <div className="container">
+        <h2 style={{color: 'var(--danger-color)'}}>Error de Configuración</h2>
+        <p>
+          Las claves públicas del servicio de rastreo no están configuradas.
+        </p>
+        <p style={{color: 'var(--secondary-text)', maxWidth: '500px'}}>
+          El administrador del sitio debe configurar las variables de entorno 
+          <code> VITE_PUSHER_KEY </code> y <code> VITE_PUSHER_CLUSTER </code>
+          para que la aplicación funcione.
+        </p>
+        <button onClick={onBack} className="btn btn-primary" style={{marginTop: '1rem'}}>&larr; Volver</button>
+      </div>
+    );
+  }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
